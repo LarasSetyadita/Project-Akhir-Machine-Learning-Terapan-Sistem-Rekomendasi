@@ -70,9 +70,11 @@ print('Jumlah data user: ',len(ratings_df.userId.unique()))
 """berdasarkan data understanding yang telah dilakukan, data ratings_df tidak diperlukan untuk membuat content based filtering recommender system
 
 # Univariate Exploratory Data Analysis
-
-## Memeriksa Missing Value
 """
+
+ratings_df.describe()
+
+"""## Memeriksa Missing Value"""
 
 missing_values_movie = movies_df.isnull().sum()
 print('jumlah missing value pada data movie: ', missing_values_movie)
@@ -113,11 +115,26 @@ print('Jumlah data duplikat pada data movie: ', jumlah_duplikat_movie)
 jumlah_duplikat_rating = ratings_df.duplicated().sum()
 print('Jumlah data duplikat pada data rating', jumlah_duplikat_rating)
 
+# Jumlah data unik di kolom title
+unique_titles = movies_df['title'].nunique()
+print('Jumlah judul unik:', unique_titles)
+
+# Jumlah data unik di kolom movieId
+unique_movieIds = movies_df['movieId'].nunique()
+print('Jumlah movieId unik:', unique_movieIds)
+
+duplicates = movies_df.groupby('title')['movieId'].nunique()
+duplicates = duplicates[duplicates > 1]
+print(duplicates)
+
 """insight :
-- tidak ditemukan data duplikat
+- ditemukan beberapa judul duplikat
 
 ## Univariate Analysis
 """
+
+duplicates = movies_df[movies_df['title'] == 'Confessions of a Dangerous Mind (2002)']
+print(duplicates)
 
 # cek daftar genre
 all_genres = movies_df['genres'].str.split('|').explode()
@@ -155,6 +172,8 @@ plt.show()
 # Data Preprocessing
 
 ## Data movie
+
+menghapus film yang genrenya tidak ditemukan
 """
 
 # Hapus baris yang kolom 'genres' berisi '(no genres listed)'
@@ -163,6 +182,13 @@ fix_movie = movies_df[movies_df['genres'] != '(no genres listed)'].copy()
 # Cek hasil
 print(f"Sebelum: {len(movies_df)} baris")
 print(f"Setelah: {len(fix_movie)} baris")
+
+"""menghapus judul film yang duplikat"""
+
+fix_movie = fix_movie.drop_duplicates(subset='title', keep='first')
+duplicates = fix_movie.groupby('title')['movieId'].nunique()
+duplicates = duplicates[duplicates > 1]
+print(duplicates)
 
 """konversi data ke dalam list"""
 
@@ -188,7 +214,10 @@ movies_new = pd.DataFrame({
 })
 movies_new
 
-"""# Model Deployment"""
+"""# Modeling
+
+## Data Preparation
+"""
 
 # membuat salinan dari data movies
 data_movies = fix_movie.copy()
@@ -247,7 +276,10 @@ print('Shape:', cosine_sim_df.shape)
 
 cosine_sim_df.sample(5, axis=1).sample(10, axis=0)
 
-"""membangun model content based filtering"""
+"""membangun model content based filtering
+
+## Model Deployment
+"""
 
 def movie_recommendations(title, similarity_data=cosine_sim_df, items=data_movies[['title', 'genres']], k=5):
     if title not in similarity_data.columns:

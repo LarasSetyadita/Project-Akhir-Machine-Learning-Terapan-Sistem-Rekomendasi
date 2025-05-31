@@ -360,8 +360,49 @@ movies_new
 
 """insight
 - membuat dictionary untuk menentukan pasangan key-value pada data movies_id, title, dan genres
+"""
 
-## Data preparation untuk Collaborative Filtering
+# membuat salinan dari data movies
+data_movies = movies_new
+
+"""### TF_IDF Vectorizer"""
+
+# Inisialisasi TfidfVectorizer
+tfidf = TfidfVectorizer(stop_words='english')
+
+tfidf_matrix = tfidf.fit_transform(data_movies['genres'])
+
+tfidf.get_feature_names_out()
+
+"""insight
+- Mengubah teks genre menjadi vektor numerik untuk mengubah setiap kumpulan genre (contohnya "Action|Adventure|Fantasy") menjadi vektor berdasarkan bobot TF-IDF (Term Frequency-Inverse Document Frequency).
+"""
+
+tfidf_matrix.shape
+
+"""Konversi Sparse Matrix ke Dense Matrix"""
+
+tfidf_matrix.todense()
+
+"""insight
+- Mengubah matrix TF-IDF dari format sparse menjadi format dense agar dapat diproses atau ditampilkan secara lengkap.
+
+
+
+
+
+
+
+
+"""
+
+pd.DataFrame(
+    tfidf_matrix.todense(),
+    columns=tfidf.get_feature_names_out(),
+    index=data_movies['title']
+).sample(21, axis=1).sample(10, axis=0)
+
+"""## Data preparation untuk Collaborative Filtering
 
 copy data ratings ke dalam dataframe baru
 """
@@ -453,49 +494,9 @@ print(X, y)
 # Model Deployment
 
 ## Model Content Based Filtering
+
+### Cek Cosine Similarity
 """
-
-# membuat salinan dari data movies
-data_movies = movies_new
-
-"""### TF_IDF Vectorizer"""
-
-# Inisialisasi TfidfVectorizer
-tfidf = TfidfVectorizer(stop_words='english')
-
-tfidf_matrix = tfidf.fit_transform(data_movies['genres'])
-
-tfidf.get_feature_names_out()
-
-"""insight
-- Mengubah teks genre menjadi vektor numerik untuk mengubah setiap kumpulan genre (contohnya "Action|Adventure|Fantasy") menjadi vektor berdasarkan bobot TF-IDF (Term Frequency-Inverse Document Frequency).
-"""
-
-tfidf_matrix.shape
-
-"""Konversi Sparse Matrix ke Dense Matrix"""
-
-tfidf_matrix.todense()
-
-"""insight
-- Mengubah matrix TF-IDF dari format sparse menjadi format dense agar dapat diproses atau ditampilkan secara lengkap.
-
-
-
-
-
-
-
-
-"""
-
-pd.DataFrame(
-    tfidf_matrix.todense(),
-    columns=tfidf.get_feature_names_out(),
-    index=data_movies['title']
-).sample(21, axis=1).sample(10, axis=0)
-
-"""### Cek Cosine Similarity"""
 
 # menggunakan subset 1000 film pertama untuk menghemat ram
 cosine_sim = cosine_similarity(tfidf_matrix)
